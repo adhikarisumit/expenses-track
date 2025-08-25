@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node api/index.js",
     "dev": "nodemon api/index.js",
-    "build": "echo 'Build completed'",
+    "build": "echo 'Static files ready for deployment'",
     "deploy": "vercel --prod"
   },
   "keywords": [
