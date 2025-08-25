@@ -2589,11 +2589,21 @@ main > section:not(.hidden) {
 #budgetSummary .h4 {
     font-weight: 700;
     margin-bottom: 0.5rem;
+    font-size: 25px;
 }
 
 #budgetSummary .text-muted {
     font-size: 0.875rem;
     font-weight: 500;
+}
+
+/* Budget Summary Text Enhancements */
+#budgetSummary .h4.text-primary,
+#budgetSummary .h4.text-danger,
+#budgetSummary .h4.text-success {
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1.2;
 }
 
 /* Budget Progress Bar */
@@ -2610,7 +2620,7 @@ main > section:not(.hidden) {
 
 /* Budget Status Badges */
 .badge {
-    font-size: 0.75rem;
+    font-size: 25px;
     font-weight: 600;
     padding: 0.5rem 0.75rem;
     border-radius: 20px;
@@ -2628,7 +2638,7 @@ main > section:not(.hidden) {
     border-radius: 20px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-size: 0.75rem;
+    font-size: 25px;
     box-shadow: var(--shadow-sm);
     transition: all 0.2s ease;
     position: relative;
@@ -2889,6 +2899,12 @@ main > section:not(.hidden) {
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
+.status-badge.secondary {
+    background: var(--accent-secondary);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+}
+
 /* Dark Mode Status Badge Enhancements */
 :root.dark .status-badge.under-budget {
     background: var(--accent-success);
@@ -2922,6 +2938,14 @@ main > section:not(.hidden) {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+:root.dark .status-badge.secondary {
+    background: var(--accent-secondary);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.4);
+    border: 1px solid rgba(156, 163, 175, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 /* Light Mode Status Badge Enhancements */
 :root:not(.dark) .status-badge.under-budget {
     border: 1px solid rgba(16, 185, 129, 0.3);
@@ -2940,6 +2964,11 @@ main > section:not(.hidden) {
 
 :root:not(.dark) .status-badge.excellent {
     border: 1px solid rgba(59, 130, 246, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+:root:not(.dark) .status-badge.secondary {
+    border: 1px solid rgba(107, 114, 128, 0.3);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 

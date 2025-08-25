@@ -1129,9 +1129,9 @@
                 <td class="${remaining >= 0 ? 'text-success' : 'text-danger'}">${fmt.format(remaining)}</td>
                 <td class="text-success">${fmt.format(savings)}</td>
                 <td>
-                    <span class="badge bg-${status.color}">${status.text}</span>
+                    <span class="badge status-badge ${getStatusClass(status.color)}">${status.text}</span>
                 </td>
-                <td class="text-muted">${budgetMonth || 'Current'}</td>
+                <td style="color: var(--text-secondary);">${budgetMonth || 'Current'}</td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" class="btn btn-outline-primary btn-sm update-spent-btn" data-cat="${escapeHtml(cat)}" title="Edit Budget">
@@ -1173,25 +1173,25 @@
                             <div class="col-md-3">
                                 <div class="text-center">
                                     <div class="h4 text-primary mb-1">${fmt.format(totalBudget)}</div>
-                                    <small class="text-muted">Total Budget</small>
+                                    <small style="color: var(--text-secondary);">Total Budget</small>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center">
                                     <div class="h4 text-danger mb-1">${fmt.format(totalSpent)}</div>
-                                    <small class="text-muted">Total Spent</small>
+                                    <small style="color: var(--text-secondary);">Total Spent</small>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center">
                                     <div class="h4 text-success mb-1">${fmt.format(totalSavings)}</div>
-                                    <small class="text-muted">Total Savings</small>
+                                    <small style="color: var(--text-secondary);">Total Savings</small>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center">
                                     <div class="h4 text-${progressColor} mb-1">${Math.round(progressPercent)}%</div>
-                                    <small class="text-muted">Usage</small>
+                                    <small style="color: var(--text-secondary);">Usage</small>
                                 </div>
                             </div>
                         </div>
@@ -1204,7 +1204,7 @@
                             </div>
                         </div>
                         <div class="text-center">
-                            <small class="text-muted">
+                            <small style="color: var(--text-secondary);">
                                 ${totalSavings > 0 ? 
                                     `🎉 You've saved ¥${fmt.format(totalSavings)} from your budgets this month!` : 
                                     totalSpent > totalBudget ? 
@@ -1219,9 +1219,9 @@
         } else {
             summaryDiv.innerHTML = `
                 <div class="text-center py-4">
-                    <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No Budgets Set</h5>
-                    <p class="text-muted">Set your first budget to start tracking your spending and savings.</p>
+                    <i class="fas fa-chart-pie fa-3x mb-3" style="color: var(--text-secondary);"></i>
+                    <h5 style="color: var(--text-secondary);">No Budgets Set</h5>
+                    <p style="color: var(--text-secondary);">Set your first budget to start tracking your spending and savings.</p>
                 </div>
             `;
         }
@@ -1241,6 +1241,18 @@
         } else {
             return { text: 'On Track', color: 'success' };
         }
+    }
+    
+    // Helper function to convert Bootstrap color names to custom CSS classes
+    function getStatusClass(bootstrapColor) {
+        const colorMap = {
+            'secondary': 'secondary',
+            'danger': 'over-budget',
+            'warning': 'at-budget',
+            'success': 'under-budget',
+            'info': 'excellent'
+        };
+        return colorMap[bootstrapColor] || 'secondary';
     }
     
     // Calculate total budget savings
@@ -4150,26 +4162,50 @@
     // Income form handler - automatically create income transaction
     function setupIncomeForm() {
         const incomeForm = byId('incomeForm');
+        console.log('Looking for income form:', incomeForm);
+        
         if (!incomeForm) {
             console.warn('Income form not found, will retry later');
             return false;
         }
         
         console.log('Setting up income form event listener');
+        console.log('Form element details:', {
+            id: incomeForm.id,
+            tagName: incomeForm.tagName,
+            className: incomeForm.className,
+            action: incomeForm.action
+        });
         
         incomeForm.addEventListener('submit', (e) => {
             e.preventDefault();
             console.log('Income form submitted!');
+            console.log('Event details:', e);
+            console.log('Form element:', e.target);
             
             // Use FormData to properly access form values
             const formData = new FormData(incomeForm);
-            const incomeAmount = parseFloat(formData.get('monthlyIncome'));
+            console.log('FormData entries:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value} (type: ${typeof value})`);
+            }
+            
+            const incomeAmountStr = formData.get('monthlyIncome');
             const incomeSource = formData.get('incomeSource').trim();
             
-            console.log('Form values:', { incomeAmount, incomeSource });
+            console.log('Raw form values:', { incomeAmountStr, incomeSource });
+            
+            // Better validation logic
+            if (!incomeAmountStr || incomeAmountStr.trim() === '') {
+                alert('Please enter an income amount');
+                return;
+            }
+            
+            const incomeAmount = parseFloat(incomeAmountStr);
+            console.log('Parsed income amount:', incomeAmount);
             
             if (isNaN(incomeAmount) || incomeAmount <= 0) {
-                alert('Please enter a valid income amount');
+                alert('Please enter a valid income amount (must be greater than 0)');
                 return;
             }
             
