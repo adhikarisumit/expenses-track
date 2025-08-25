@@ -1,0 +1,37 @@
+{
+  "name": "financial-management-app",
+  "version": "1.0.0",
+  "description": "A comprehensive financial management application with budget tracking, expense management, and financial analytics",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js",
+    "dev": "nodemon api/index.js",
+    "build": "echo 'Build completed'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "finance",
+    "budget",
+    "expense-tracker",
+    "financial-analytics",
+    "budget-management"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "vercel": "^41.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

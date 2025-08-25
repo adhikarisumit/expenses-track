@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en"> <!-- Language fixed -->
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Yen Budget Manager</title>
+    <meta name="color-scheme" content="light dark" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js" defer></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container-fluid">
+            <div class="navbar-brand d-flex align-items-center">
+                <div class="logo me-2">¥</div>
+                <div>Yen Budget Manager</div>
+                <span class="badge bg-secondary ms-2" id="monthTag"></span>
+            </div>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0" id="tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-view="dashboard" href="#" role="button">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-view="transactions" href="#" role="button">Transactions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-view="budgets" href="#" role="button">Budgets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-view="reports" href="#" role="button">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-view="settings" href="#" role="button">Settings</a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-light" id="toggleTheme" title="Toggle Light / Dark (L)">🌓</button>
+                    <button class="btn btn-primary" id="addQuick" title="Quick add (A)">➕ Add</button>
+                    <button class="btn btn-outline-light" id="exportBtn" title="Open Export">⬇️ Export</button>
+                    <label class="btn btn-outline-light">
+                        ⬆️ Import
+                        <input type="file" id="importFile" accept=".json,.csv" hidden />
+                    </label>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="app" class="container-fluid py-4">
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="dashboard-container">
+            <!-- Executive Summary Header -->
+            <div class="executive-summary">
+                <div class="summary-content">
+                    <div class="summary-left">
+                        <div class="summary-title">
+                            <h1 class="summary-heading">Financial Dashboard</h1>
+                            <p class="summary-subtitle">Comprehensive overview of your financial health</p>
+                        </div>
+                        <div class="summary-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Current Period</span>
+                                <span class="stat-value" id="monthTag"></span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Last Updated</span>
+                                <span class="stat-value" id="lastUpdated"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="summary-right">
+                        <div class="summary-actions">
+                            <button class="btn btn-primary btn-lg" onclick="navigateToPage('transactions')">
+                                <i class="fas fa-plus"></i>
+                                <span>New Transaction</span>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg" onclick="navigateToPage('reports')">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Analytics</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Performance Indicators -->
+            <div class="kpi-section">
+                <div class="kpi-grid" id="kpis"></div>
+            </div>
+
+            <!-- Main Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="content-left">
+                    <!-- Financial Overview -->
+                    <div class="dashboard-card financial-overview">
+                        <div class="card-header">
+                            <div class="header-content">
+                                <h3 class="card-title">
+                                    <i class="fas fa-chart-area"></i>
+                                    Financial Overview
+                                </h3>
+                                <div class="header-actions">
+                                    <select class="form-select form-select-sm" id="overviewPeriod">
+                                        <option value="current">Current Month</option>
+                                        <option value="previous">Previous Month</option>
+                                        <option value="quarter">This Quarter</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="overview-metrics">
+                                <div class="metric-row">
+                                    <div class="metric-item">
+                                        <div class="metric-icon income">
+                                            <i class="fas fa-arrow-trend-up"></i>
+                                        </div>
+                                        <div class="metric-content">
+                                            <span class="metric-label">Income Change</span>
+                                            <span class="metric-value" id="overviewIncome">+0%</span>
+                                            <span class="metric-change positive">vs Previous</span>
+                                        </div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-icon expense">
+                                            <i class="fas fa-arrow-trend-down"></i>
+                                        </div>
+                                        <div class="metric-content">
+                                            <span class="metric-label">Expense Change</span>
+                                            <span class="metric-value" id="overviewExpense">+0%</span>
+                                            <span class="metric-change negative">vs Previous</span>
+                                        </div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-icon savings">
+                                            <i class="fas fa-piggy-bank"></i>
+                                        </div>
+                                        <div class="metric-content">
+                                            <span class="metric-label">Savings Rate</span>
+                                            <span class="metric-value" id="overviewSavings">0%</span>
+                                            <span class="metric-change" id="overviewSavingsChange">of Income</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions -->
+                    <div class="dashboard-card transactions-card mt-3">
+                        <div class="card-header">
+                            <div class="header-content">
+                                <h3 class="card-title">
+                                    <i class="fas fa-clock"></i>
+                                    Recent Transactions
+                                </h3>
+                                <div class="header-actions">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="navigateToPage('transactions')">
+                                        View All
+                                        <i class="fas fa-external-link-alt ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="transactions-table">
+                                <table class="table table-hover" id="recentTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Category</th>
+                                            <th>Description</th>
+                                            <th class="text-end">Amount</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trend Analysis -->
+                    <div class="dashboard-card trend-analysis mt-3">
+                        <div class="card-header">
+                            <div class="header-content">
+                                <h3 class="card-title">
+                                    <i class="fas fa-chart-line"></i>
+                                    Financial Trends
+                                </h3>
+                                <div class="header-actions">
+                                    <div class="chart-controls">
+                                        <button class="btn btn-outline-secondary btn-sm active" data-period="6m">6M</button>
+                                        <button class="btn btn-outline-secondary btn-sm" data-period="1y">1Y</button>
+                                        <button class="btn btn-outline-secondary btn-sm" data-period="2y">2Y</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-right">
+                    <!-- Budget Status -->
+                    <div class="dashboard-card budget-status">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-chart-pie"></i>
+                                Budget Status
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="budget-chart">
+                                <canvas id="budgetPie"></canvas>
+                            </div>
+                            <div id="budgetSummary"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Insights -->
+                    <div class="dashboard-card quick-insights mt-3">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-lightbulb"></i>
+                                Quick Insights
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="insights-list" id="insightsList">
+                                <!-- Insights will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Performance -->
+                    <div class="dashboard-card category-performance mt-3">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-tags"></i>
+                                Top Categories
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="category-list" id="topCategories">
+                                <!-- Top categories will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TRANSACTIONS -->
+        <section id="transactions" class="row g-4 hidden" aria-hidden="true">
+            <!-- Transactions Page Header -->
+            <div class="col-12">
+                <div class="page-header">
+                    <h1 class="page-title">Transaction Management</h1>
+                    <p class="page-subtitle">Add, edit, and manage your financial transactions</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">New Transaction</h2>
+                        <form id="txForm">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">Type</label>
+                                    <select name="type" class="form-select" required>
+                                        <option value="expense">Expense</option>
+                                        <option value="income">Income</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Category</label>
+                                    <input name="category" id="category" list="catList" class="form-control" placeholder="e.g., Food, Rent" autocomplete="off">
+                                    <datalist id="catList"></datalist>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Amount (¥)</label>
+                                    <input name="amount" type="number" class="form-control" step="1" min="0" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Date</label>
+                                    <input name="date" type="date" class="form-control" required />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Note</label>
+                                    <input name="note" class="form-control" placeholder="Note (optional)" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Recurring</label>
+                                    <select name="recurring" class="form-select">
+                                        <option value="none">None</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                        <option value="yearly">Yearly</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Next Occurrence</label>
+                                    <input name="next" type="date" class="form-control" />
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary" type="submit">Save Transaction</button>
+                                        <button class="btn btn-secondary" type="reset">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="alert alert-info mt-3">
+                            <strong>Tips:</strong><br>
+                            Ctrl+T — Quick add transaction<br>
+                            Ctrl+L — Toggle light/dark<br>
+                            Ctrl+/ — Focus category filter<br>
+                            Recurring items auto-post on app load if due.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 class="card-title mb-0">All Transactions</h2>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <div>
+                                    <label class="form-label">Filter by Category</label>
+                                    <input id="filterCat" list="catList" class="form-control form-control-sm" placeholder="(all)" />
+                                </div>
+                                <div>
+                                    <label class="form-label">Month</label>
+                                    <input id="filterMonth" type="month" class="form-control form-control-sm" />
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm" id="clearFilters">Clear</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="txTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Category</th>
+                                        <th>Note</th>
+                                        <th class="text-end">Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BUDGETS -->
+        <section id="budgets" class="row g-4 hidden">
+            <!-- Budgets Page Header -->
+            <div class="col-12">
+                <div class="page-header">
+                    <h1 class="page-title">Budget Management</h1>
+                    <p class="page-subtitle">Set and manage your monthly spending limits</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Category Budget</h2>
+                        <form id="budgetForm">
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <input name="category" list="catList" class="form-control" placeholder="e.g., Food" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Monthly Budget (¥)</label>
+                                <input name="amount" type="number" class="form-control" step="1" min="0" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Amount Spent (¥)</label>
+                                <input name="spent" type="number" class="form-control" step="1" min="0" placeholder="Enter amount spent" />
+                                <small class="form-text text-muted">Leave empty if you haven't spent anything yet</small>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary" type="submit">Save Budget</button>
+                                <button class="btn btn-danger" type="button" id="deleteBudget">Delete</button>
+                            </div>
+                        </form>
+                        
+                        <h3 class="mt-4">Income Management</h3>
+                        <form id="incomeForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Monthly Income (¥)</label>
+                                    <input name="monthlyIncome" type="number" class="form-control" step="1" min="0" placeholder="500000" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Income Source</label>
+                                    <input name="incomeSource" type="text" class="form-control" placeholder="e.g., Salary, Business" />
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-outline-success" type="submit">Save Income</button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <h3 class="mt-4">Saving Goal</h3>
+                        <form id="goalForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Monthly Income (¥)</label>
+                                    <input name="goalIncome" type="number" class="form-control" step="1" min="0" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Target Save %</label>
+                                    <input name="goalRate" type="number" class="form-control" step="1" min="0" max="100" placeholder="20" />
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-outline-primary" type="submit">Save Goal</button>
+                                </div>
+                            </div>
+                            <div class="text-muted mt-2" id="goalNote"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Budgets Overview</h2>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="budgetTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Budget</th>
+                                        <th>Spent</th>
+                                        <th>Remaining</th>
+                                        <th>Savings</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="budgetTableBody">
+                                    <!-- Budgets will be rendered here by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="budgetSummary" class="mt-3">
+                            <!-- Budget summary will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- REPORTS -->
+        <section id="reports" class="row g-4 hidden">
+            <!-- Reports Page Header -->
+            <div class="col-12">
+                <div class="page-header">
+                    <h1 class="page-title">Financial Reports</h1>
+                    <p class="page-subtitle">Analyze your financial data with detailed reports and insights</p>
+                </div>
+                
+                <!-- Monthly Data Table -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-center mb-3">
+                            <div class="col-md-6">
+                                <h3 class="card-title mb-0">
+                                    <i class="fas fa-table me-2"></i>
+                                    Monthly Financial Data
+                                </h3>
+                                <p class="text-muted mb-0">View and save all your monthly financial data</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-outline-primary me-2" id="refreshMonthlyData">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                                </button>
+                                <button class="btn btn-success" id="saveAsExcel">
+                                    <i class="fas fa-file-excel me-1"></i>Save as Excel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="monthlyDataTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Income</th>
+                                        <th>Expenses</th>
+                                        <th>Savings</th>
+                                        <th>Savings Rate</th>
+                                        <th>Transactions</th>
+                                        <th>Budget Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthlyDataTableBody">
+                                    <!-- Monthly data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+
+            <!-- Budget vs Actual Analysis -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-balance-scale"></i>
+                            Budget vs Actual Analysis
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="budgetVsActualTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Budget</th>
+                                        <th>Actual Spent</th>
+                                        <th>Variance</th>
+                                        <th>% Used</th>
+                                        <th>Status</th>
+                                        <th>Trend</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="budgetVsActualBody">
+                                    <!-- Budget vs Actual data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Charts Row -->
+            <div class="col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Category Breakdown
+                        </h2>
+                        <div class="header-actions">
+                            <select class="form-select form-select-sm" id="categoryBreakdownPeriod">
+                                <option value="current">Current Month</option>
+                                <option value="last3">Last 3 Months</option>
+                                <option value="last6">Last 6 Months</option>
+                                <option value="year">This Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 300px; position: relative;">
+                            <canvas id="categoryPie"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Monthly Savings Trend
+                        </h2>
+                        <div class="header-actions">
+                            <select class="form-select form-select-sm" id="savingsTrendPeriod">
+                                <option value="6">Last 6 Months</option>
+                                <option value="12">Last 12 Months</option>
+                                <option value="24">Last 2 Years</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 300px; position: relative;">
+                            <canvas id="savingsBar"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Income vs Expenses Trend -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-line"></i>
+                            Income vs Expenses Trend
+                        </h2>
+                        <div class="header-actions">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-secondary btn-sm active" data-period="6m">6M</button>
+                                <button class="btn btn-outline-secondary btn-sm" data-period="1y">1Y</button>
+                                <button class="btn btn-outline-secondary btn-sm" data-period="2y">2Y</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 400px; position: relative;">
+                            <canvas id="incomeExpenseTrend"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Performance Analysis -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-area"></i>
+                            Category Performance Analysis
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <h5>Top Spending Categories</h5>
+                                <div id="topSpendingCategories">
+                                    <!-- Top spending categories will be populated here -->
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <h5>Top Saving Categories</h5>
+                                <div id="topSavingCategories">
+                                    <!-- Top saving categories will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Insights -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Financial Insights & Recommendations
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="financialInsights">
+                            <!-- Financial insights will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Data -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-history"></i>
+                            Historical Financial Data
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Date Range</label>
+                                <select class="form-select" id="historicalRange">
+                                    <option value="3m">Last 3 Months</option>
+                                    <option value="6m">Last 6 Months</option>
+                                    <option value="1y">Last Year</option>
+                                    <option value="2y">Last 2 Years</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Data Type</label>
+                                <select class="form-select" id="historicalDataType">
+                                    <option value="all">All Transactions</option>
+                                    <option value="income">Income Only</option>
+                                    <option value="expenses">Expenses Only</option>
+                                    <option value="savings">Savings Only</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive mt-3">
+                            <table class="table table-hover" id="historicalDataTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Category</th>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                        <th>Running Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historicalDataBody">
+                                    <!-- Historical data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projection Section -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-crystal-ball"></i>
+                            Financial Projections
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="projection"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="settings" class="row g-4 hidden">
+            <!-- Settings Page Header -->
+            <div class="col-12">
+                <div class="page-header">
+                    <h1 class="page-title">Settings & Configuration</h1>
+                    <p class="page-subtitle">Manage your application preferences, categories, and data</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Data</h2>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary" id="exportJson">Export JSON</button>
+                            <button class="btn btn-outline-primary" id="exportCsv">Export CSV</button>
+                            <button class="btn btn-danger" id="wipe">Wipe Data</button>
+                        </div>
+                        <h3 class="mt-4">About</h3>
+                        <p class="text-muted">
+                            Offline-first, local-only. Currency fixed to <b>JPY</b>. Charts via Chart.js (if available).
+                            Built for clarity and speed 🔨🤖🔧
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Keyboard Shortcuts</h2>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><strong>Ctrl+T</strong> — Quick add transaction</li>
+                            <li class="mb-2"><strong>Ctrl+L</strong> — Toggle light/dark</li>
+                            <li class="mb-2"><strong>Ctrl+/</strong> — Focus category filter</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Category Management Section - Now exclusive to Settings -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Category Management</h2>
+
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h3 class="mb-0">Current Categories <span id="categoryCount" class="badge bg-secondary ms-2"></span></h3>
+                                <div class="col-md-4">
+                                    <input type="text" id="categorySearch" class="form-control" placeholder="Search categories..." />
+                                </div>
+                            </div>
+                            <div id="categoryList" class="row g-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-dark text-light text-center py-3 mt-5">
+        <div class="container-fluid">
+            © 2025 Yen Budget Manager — Local & Private
+        </div>
+    </footer>
+
+    <template id="rowTx">
+        <tr>
+            <td data-k="date"></td>
+            <td data-k="type"></td>
+            <td data-k="category"></td>
+            <td data-k="note"></td>
+            <td data-k="amount" class="right"></td>
+            <td>
+                <button class="btn" data-act="edit">✏️</button>
+                <button class="btn danger" data-act="del">🗑️</button>
+            </td>
+        </tr>
+    </template>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js" defer></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
