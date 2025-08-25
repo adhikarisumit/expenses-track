@@ -886,13 +886,18 @@
         const cat = (fd.get('category') || '').trim();
         const amt = Math.round(Number(fd.get('amount') || 0));
         const spent = Math.round(Number(fd.get('spent') || 0));
+        const month = fd.get('month') || new Date().toISOString().slice(0, 7);
+        const notes = fd.get('notes') || '';
         
         if (!cat) return;
         
-        // Store budget as object with amount and spent
+        // Store budget as object with all fields
         state.budgets[cat] = {
             amount: amt,
-            spent: spent
+            spent: spent,
+            month: month,
+            notes: notes,
+            lastUpdated: new Date().toISOString()
         };
         
         if (!state.categories.includes(cat)) state.categories.push(cat);
@@ -916,8 +921,10 @@
         renderAll();
         updateReportsRealTime(); // Update reports in real-time
         
-        // Clear spent field after saving
+        // Clear form fields after saving
         budgetForm.spent.value = '';
+        budgetForm.month.value = '';
+        budgetForm.notes.value = '';
     });
     byId('deleteBudget').addEventListener('click', () => {
         const cat = budgetForm.category.value.trim(); 
@@ -1082,6 +1089,15 @@
         
         if (!tableBody) return;
         
+        // Set current month in budget form
+        const budgetMonthInput = byId('budgetMonthInput');
+        if (budgetMonthInput) {
+            budgetMonthInput.value = new Date().toISOString().slice(0, 7);
+        }
+
+        // Add real-time budget preview functionality
+        setupBudgetPreview();
+        
         tableBody.innerHTML = '';
         
         let totalBudget = 0;
@@ -1102,6 +1118,10 @@
             totalSavings += savings;
             
             const row = document.createElement('tr');
+            const budgetMonth = typeof budgetData === 'object' && budgetData.month ? budgetData.month : '';
+            const budgetNotes = typeof budgetData === 'object' && budgetData.notes ? budgetData.notes : '';
+            const lastUpdated = typeof budgetData === 'object' && budgetData.lastUpdated ? new Date(budgetData.lastUpdated).toLocaleDateString() : '';
+            
             row.innerHTML = `
                 <td><strong>${escapeHtml(cat)}</strong></td>
                 <td class="text-primary">${fmt.format(budgetAmount)}</td>
@@ -1111,10 +1131,11 @@
                 <td>
                     <span class="badge bg-${status.color}">${status.text}</span>
                 </td>
+                <td class="text-muted">${budgetMonth || 'Current'}</td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary btn-sm update-spent-btn" data-cat="${escapeHtml(cat)}" title="Update Spent Amount">
-                            <i class="fas fa-edit"></i>
+                        <button type="button" class="btn btn-outline-primary btn-sm update-spent-btn" data-cat="${escapeHtml(cat)}" title="Edit Budget">
+                            <i class="fas fa-edit"></i> Edit
                         </button>
                         <button type="button" class="btn btn-outline-danger btn-sm delete-budget-btn" data-cat="${escapeHtml(cat)}" title="Delete Budget">
                             <i class="fas fa-trash"></i>
@@ -1122,6 +1143,20 @@
                     </div>
                 </td>
             `;
+            
+            // Add tooltip for additional budget info if available
+            if (budgetMonth || budgetNotes || lastUpdated) {
+                let tooltipText = '';
+                if (budgetMonth) tooltipText += `Month: ${budgetMonth}\n`;
+                if (budgetNotes) tooltipText += `Notes: ${budgetNotes}\n`;
+                if (lastUpdated) tooltipText += `Last Updated: ${lastUpdated}`;
+                
+                if (tooltipText) {
+                    row.setAttribute('data-bs-toggle', 'tooltip');
+                    row.setAttribute('data-bs-placement', 'top');
+                    row.setAttribute('title', tooltipText.trim());
+                }
+            }
             tableBody.appendChild(row);
         });
         
@@ -1246,25 +1281,162 @@
             btn.onclick = function() {
                 const cat = this.getAttribute('data-cat');
                 const budgetData = state.budgets[cat];
+                const currentAmount = typeof budgetData === 'object' ? budgetData.amount : budgetData;
                 const currentSpent = typeof budgetData === 'object' ? budgetData.spent : 0;
                 
-                const newSpent = prompt(`Update spent amount for "${cat}":`, currentSpent);
-                if (newSpent !== null && !isNaN(newSpent)) {
-                    const spentAmount = Math.round(Number(newSpent));
+                // Create a comprehensive budget editing modal with color grading
+                const editModal = document.createElement('div');
+                editModal.className = 'modal fade';
+                editModal.id = 'budgetEditModal';
+                editModal.innerHTML = `
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-gradient-primary text-white">
+                                <h5 class="modal-title" style="color: var(--text-inverse);">
+                                    <i class="fas fa-edit me-2"></i>
+                                    Edit Budget: ${escapeHtml(cat)}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Budget Status Overview -->
+                                <div class="budget-status-overview mb-4 p-3 rounded" style="background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); border: 1px solid var(--border-primary);">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="text-center">
+                                                <div class="h5 text-primary mb-1">¥${currentAmount.toLocaleString()}</div>
+                                                <small class="text-muted">Budget Amount</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="text-center">
+                                                <div class="h5 text-danger mb-1">¥${currentSpent.toLocaleString()}</div>
+                                                <small class="text-muted">Amount Spent</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="text-center">
+                                                <div class="h5 text-${currentAmount - currentSpent >= 0 ? 'success' : 'danger'} mb-1">¥${Math.abs(currentAmount - currentSpent).toLocaleString()}</div>
+                                                <small class="text-muted">${currentAmount - currentSpent >= 0 ? 'Remaining' : 'Over Budget'}</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="text-center">
+                                                <div class="h5 text-${getBudgetStatusColor(currentAmount, currentSpent)} mb-1">${Math.round((currentSpent / currentAmount) * 100)}%</div>
+                                                <small class="text-muted">Usage</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Progress Bar with Color Grading -->
+                                    <div class="mt-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <small class="text-muted">Budget Progress</small>
+                                            <small class="text-muted">${currentSpent.toLocaleString()} / ${currentAmount.toLocaleString()}</small>
+                                        </div>
+                                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                                            <div class="progress-bar ${getProgressBarClass(currentAmount, currentSpent)}" 
+                                                 role="progressbar" 
+                                                 style="width: ${Math.min((currentSpent / currentAmount) * 100, 100)}%; border-radius: 6px;"
+                                                 aria-valuenow="${Math.min((currentSpent / currentAmount) * 100, 100)}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <form id="budgetEditForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="editBudgetAmount" class="form-label" style="color: var(--text-primary);">
+                                                <i class="fas fa-wallet me-2" style="color: var(--accent-primary);"></i>
+                                                Budget Amount (¥)
+                                            </label>
+                                            <input type="number" class="form-control form-control-lg" id="editBudgetAmount" value="${currentAmount}" min="0" step="1" required>
+                                            <div class="form-text" style="color: var(--text-secondary);">
+                                                <i class="fas fa-info-circle me-1" style="color: var(--accent-info);"></i>
+                                                Set your monthly budget limit
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="editBudgetSpent" class="form-label" style="color: var(--text-primary);">
+                                                <i class="fas fa-receipt me-2" style="color: var(--accent-danger);"></i>
+                                                Amount Spent (¥)
+                                            </label>
+                                            <input type="number" class="form-control form-control-lg" id="editBudgetSpent" value="${currentSpent}" min="0" step="1" required>
+                                            <div class="form-text" style="color: var(--text-secondary);">
+                                                <i class="fas fa-info-circle me-1" style="color: var(--accent-info);"></i>
+                                                Current spending amount
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="editBudgetMonth" class="form-label" style="color: var(--text-primary);">
+                                                <i class="fas fa-calendar me-2" style="color: var(--accent-info);"></i>
+                                                Budget Month
+                                            </label>
+                                            <input type="month" class="form-control" id="editBudgetMonth" value="${new Date().toISOString().slice(0, 7)}">
+                                            <div class="form-text" style="color: var(--text-secondary);">
+                                                <i class="fas fa-info-circle me-1" style="color: var(--accent-info);"></i>
+                                                Month for this budget
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="editBudgetNotes" class="form-label" style="color: var(--text-primary);">
+                                                <i class="fas fa-sticky-note me-2" style="color: var(--accent-warning);"></i>
+                                                Notes (Optional)
+                                            </label>
+                                            <textarea class="form-control" id="editBudgetNotes" rows="2" placeholder="Add any notes about this budget..."></textarea>
+                                            <div class="form-text" style="color: var(--text-secondary);">
+                                                <i class="fas fa-info-circle me-1" style="color: var(--accent-info);"></i>
+                                                Additional information
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="color: var(--text-primary);">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </button>
+                                <button type="button" class="btn btn-primary btn-lg" id="saveBudgetChanges" style="color: var(--text-inverse);">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add modal to body
+                document.body.appendChild(editModal);
+                
+                // Show modal
+                const modal = new bootstrap.Modal(editModal);
+                modal.show();
+                
+                // Handle save button
+                document.getElementById('saveBudgetChanges').onclick = function() {
+                    const newAmount = Math.round(Number(document.getElementById('editBudgetAmount').value) || 0);
+                    const newSpent = Math.round(Number(document.getElementById('editBudgetSpent').value) || 0);
+                    const newMonth = document.getElementById('editBudgetMonth').value;
+                    const newNotes = document.getElementById('editBudgetNotes').value;
+                    
+                    if (newAmount < 0 || newSpent < 0) {
+                        showToast('Amounts cannot be negative', 'error');
+                        return;
+                    }
                     
                     // Calculate the difference in spent amount
-                    const spentDifference = spentAmount - currentSpent;
+                    const spentDifference = newSpent - currentSpent;
                     
-                    // Update the budget data
-                    if (typeof budgetData === 'object') {
-                        state.budgets[cat].spent = spentAmount;
-                    } else {
-                        // Convert old format to new format
-                        state.budgets[cat] = {
-                            amount: budgetData,
-                            spent: spentAmount
-                        };
-                    }
+                    // Update the budget data with all fields
+                    state.budgets[cat] = {
+                        amount: newAmount,
+                        spent: newSpent,
+                        month: newMonth,
+                        notes: newNotes,
+                        lastUpdated: new Date().toISOString()
+                    };
                     
                     // If spent amount increased, create an expense transaction for the difference
                     if (spentDifference > 0) {
@@ -1283,18 +1455,35 @@
                     save();
                     renderBudgets();
                     renderAll();
-                    updateReportsRealTime(); // Update reports in real-time
+                    updateReportsRealTime();
                     
                     // Show feedback
-                    const remaining = state.budgets[cat].amount - spentAmount;
+                    const remaining = newAmount - newSpent;
                     if (remaining > 0) {
-                        showToast(`Updated ${cat} spent amount. You've saved ¥${fmt.format(remaining)}!`, 'success');
+                        showToast(`Updated ${cat} budget. You've saved ¥${fmt.format(remaining)}!`, 'success');
                     } else if (remaining < 0) {
-                        showToast(`Updated ${cat} spent amount. You're ¥${fmt.format(-remaining)} over budget.`, 'warning');
+                        showToast(`Updated ${cat} budget. You're ¥${fmt.format(-remaining)} over budget.`, 'warning');
                     } else {
-                        showToast(`Updated ${cat} spent amount. Budget fully used.`, 'info');
+                        showToast(`Updated ${cat} budget. Budget fully used.`, 'info');
                     }
-                }
+                    
+                    // Close modal
+                    modal.hide();
+                    
+                    // Remove modal from DOM
+                    setTimeout(() => {
+                        document.body.removeChild(editModal);
+                    }, 300);
+                };
+                
+                // Clean up modal when hidden
+                editModal.addEventListener('hidden.bs.modal', function() {
+                    setTimeout(() => {
+                        if (document.body.contains(editModal)) {
+                            document.body.removeChild(editModal);
+                        }
+                    }, 300);
+                });
             };
         });
     }
@@ -1641,6 +1830,78 @@
         if (usage < 70) return '📊 Normal';
         if (usage < 90) return '⚠️ High Usage';
         return '🚨 Critical';
+    }
+
+    // Helper function to get budget status color for display
+    function getBudgetStatusColor(budget, spent) {
+        if (budget === 0) return 'secondary';
+        const percentage = (spent / budget) * 100;
+        if (percentage >= 100) return 'danger';
+        if (percentage >= 80) return 'warning';
+        if (percentage <= 50) return 'success';
+        return 'info';
+    }
+
+    // Helper function to get progress bar class
+    function getProgressBarClass(budget, spent) {
+        if (budget === 0) return 'bg-secondary';
+        const percentage = (spent / budget) * 100;
+        if (percentage >= 100) return 'bg-danger';
+        if (percentage >= 80) return 'bg-warning';
+        if (percentage <= 50) return 'bg-success';
+        return 'bg-info';
+    }
+
+    // Setup budget preview functionality
+    function setupBudgetPreview() {
+        const budgetForm = byId('budgetForm');
+        const budgetPreview = byId('budgetPreview');
+        const previewAmount = byId('previewAmount');
+        const previewSpent = byId('previewSpent');
+        const previewProgress = byId('previewProgress');
+        const previewPercentage = byId('previewPercentage');
+
+        if (!budgetForm || !budgetPreview) return;
+
+        // Show preview when form has values
+        const showPreview = () => {
+            const formData = new FormData(budgetForm);
+            const amount = Number(formData.get('amount') || 0);
+            const spent = Number(formData.get('spent') || 0);
+
+            if (amount > 0) {
+                budgetPreview.style.display = 'block';
+                previewAmount.textContent = `¥${amount.toLocaleString()}`;
+                previewSpent.textContent = `¥${spent.toLocaleString()}`;
+
+                const percentage = Math.min((spent / amount) * 100, 100);
+                previewProgress.style.width = `${percentage}%`;
+                previewProgress.className = `progress-bar ${getProgressBarClass(amount, spent)}`;
+                previewPercentage.textContent = `${Math.round(percentage)}%`;
+
+                // Update progress bar color based on usage
+                if (percentage >= 100) {
+                    previewProgress.className = 'progress-bar bg-danger';
+                } else if (percentage >= 80) {
+                    previewProgress.className = 'progress-bar bg-warning';
+                } else if (percentage <= 50) {
+                    previewProgress.className = 'progress-bar bg-success';
+                } else {
+                    previewProgress.className = 'progress-bar bg-info';
+                }
+            } else {
+                budgetPreview.style.display = 'none';
+            }
+        };
+
+        // Add event listeners for real-time updates
+        budgetForm.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', showPreview);
+            input.addEventListener('change', showPreview);
+        });
+
+        // Initial preview
+        showPreview();
     }
 
     function renderCategoryBreakdown() {

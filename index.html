@@ -390,25 +390,93 @@
             
             <div class="col-lg-4 col-md-12">
                 <div class="card">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h2 class="card-title mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            Category Budget
+                        </h2>
+                    </div>
                     <div class="card-body">
-                        <h2 class="card-title">Category Budget</h2>
+                        <!-- Budget Preview Section -->
+                        <div class="budget-preview mb-4 p-3 rounded" style="background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); border: 1px solid var(--border-primary); display: none;" id="budgetPreview">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-eye me-2"></i>
+                                Budget Preview
+                            </h6>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="h6 text-primary mb-1" id="previewAmount">¥0</div>
+                                        <small class="text-muted">Budget</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="h6 text-danger mb-1" id="previewSpent">¥0</div>
+                                        <small class="text-muted">Spent</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress mb-2" style="height: 8px; border-radius: 4px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 0%; border-radius: 4px;" id="previewProgress"></div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">0%</small>
+                                <small class="text-muted" id="previewPercentage">0%</small>
+                            </div>
+                        </div>
+
                         <form id="budgetForm">
                             <div class="mb-3">
-                                <label class="form-label">Category</label>
+                                <label class="form-label">
+                                    <i class="fas fa-tags text-primary me-2"></i>
+                                    Category
+                                </label>
                                 <input name="category" list="catList" class="form-control" placeholder="e.g., Food" required />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Monthly Budget (¥)</label>
+                                <label class="form-label">
+                                    <i class="fas fa-wallet text-success me-2"></i>
+                                    Monthly Budget (¥)
+                                </label>
                                 <input name="amount" type="number" class="form-control" step="1" min="0" required />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Amount Spent (¥)</label>
+                                <label class="form-label">
+                                    <i class="fas fa-receipt text-danger me-2"></i>
+                                    Amount Spent (¥)
+                                </label>
                                 <input name="spent" type="number" class="form-control" step="1" min="0" placeholder="Enter amount spent" />
-                                <small class="form-text text-muted">Leave empty if you haven't spent anything yet</small>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Leave empty if you haven't spent anything yet
+                                </small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar text-info me-2"></i>
+                                    Budget Month
+                                </label>
+                                <input name="month" type="month" class="form-control" value="" id="budgetMonthInput" />
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Leave empty to use current month
+                                </small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-sticky-note text-warning me-2"></i>
+                                    Notes (Optional)
+                                </label>
+                                <textarea name="notes" class="form-control" rows="2" placeholder="Add any notes about this budget..."></textarea>
                             </div>
                             <div class="d-grid gap-2">
-                                <button class="btn btn-primary" type="submit">Save Budget</button>
-                                <button class="btn btn-danger" type="button" id="deleteBudget">Delete</button>
+                                <button class="btn btn-primary btn-lg" type="submit">
+                                    <i class="fas fa-save me-2"></i>Save Budget
+                                </button>
+                                <button class="btn btn-outline-danger" type="button" id="deleteBudget">
+                                    <i class="fas fa-trash me-2"></i>Delete
+                                </button>
                             </div>
                         </form>
                         
@@ -464,6 +532,7 @@
                                         <th>Remaining</th>
                                         <th>Savings</th>
                                         <th>Status</th>
+                                        <th>Month</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>

@@ -77,6 +77,14 @@
     --danger-color: var(--accent-danger);
     --info-color: var(--accent-info);
     
+    /* RGB values for transparency effects */
+    --accent-primary-rgb: 102, 126, 234;
+    --accent-secondary-rgb: 139, 92, 246;
+    --accent-success-rgb: 16, 185, 129;
+    --accent-warning-rgb: 245, 158, 11;
+    --accent-danger-rgb: 239, 68, 68;
+    --accent-info-rgb: 59, 130, 246;
+    
     /* Light Mode Specific Gradients */
     --card-bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     --header-bg-gradient: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -160,6 +168,14 @@
     --warning-color: var(--accent-warning);
     --danger-color: var(--accent-danger);
     --info-color: var(--accent-info);
+    
+    /* RGB values for transparency effects - Dark Mode */
+    --accent-primary-rgb: 129, 140, 248;
+    --accent-secondary-rgb: 167, 139, 250;
+    --accent-success-rgb: 52, 211, 153;
+    --accent-warning-rgb: 251, 191, 36;
+    --accent-danger-rgb: 248, 113, 113;
+    --accent-info-rgb: 147, 197, 253;
     
     /* Dark Mode Specific Gradients */
     --card-bg-gradient: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -2480,6 +2496,48 @@ main > section:not(.hidden) {
     border: none;
 }
 
+/* Enhanced Budget Table with Color Grading */
+#budgetTable tbody tr {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+#budgetTable tbody tr:hover {
+    background: var(--bg-secondary);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+    border-left-color: var(--accent-primary);
+}
+
+#budgetTable tbody tr:nth-child(even) {
+    background: rgba(var(--accent-primary-rgb, 102, 126, 234), 0.02);
+}
+
+#budgetTable tbody tr:nth-child(odd) {
+    background: rgba(var(--accent-secondary-rgb, 139, 92, 246), 0.02);
+}
+
+/* Budget Table Cell Enhancements */
+#budgetTable tbody td {
+    position: relative;
+    overflow: hidden;
+}
+
+#budgetTable tbody td::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.3s ease;
+}
+
+#budgetTable tbody tr:hover td::before {
+    left: 100%;
+}
+
 #budgetTable thead th {
     background: var(--bg-header);
     color: var(--text-inverse);
@@ -2507,6 +2565,11 @@ main > section:not(.hidden) {
     border: none;
     padding: 1rem 0.75rem;
     vertical-align: middle;
+}
+
+/* Budget Status Column Enhancement */
+#budgetTable tbody td:nth-child(6) {
+    text-align: center;
 }
 
 /* Budget Summary Card */
@@ -2553,6 +2616,116 @@ main > section:not(.hidden) {
     border-radius: 20px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Budget Table Status Badge Enhancements */
+#budgetTable .status-badge {
+    display: inline-block;
+    min-width: 100px;
+    text-align: center;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Budget Form Color Grading Enhancements */
+.budget-preview {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.budget-preview:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.budget-status-overview {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Enhanced Form Labels with Icons */
+.form-label i {
+    transition: all 0.2s ease;
+}
+
+.form-label:hover i {
+    transform: scale(1.1);
+}
+
+/* Enhanced Input Fields */
+.form-control:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transition: all 0.2s ease;
+}
+
+.form-control-lg:focus {
+    box-shadow: 0 0 0 0.3rem rgba(102, 126, 234, 0.3);
+}
+
+/* Progress Bar Enhancements */
+.progress {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-inset);
+}
+
+.progress-bar {
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Modal Enhancements */
+.modal-header.bg-gradient-primary {
+    background: var(--primary-gradient) !important;
+    border-bottom: none;
+}
+
+.modal-content {
+    border: none;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-lg);
+}
+
+.modal-footer.bg-light {
+    background: var(--bg-secondary) !important;
+    border-top: 1px solid var(--border-primary);
+}
+
+#budgetTable .status-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 /* Budget Action Buttons */
@@ -2700,7 +2873,7 @@ main > section:not(.hidden) {
 
 .status-badge.at-budget {
     background: var(--accent-warning);
-    color: var(--text-primary);
+    color: var(--text-inverse);
     box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
 }
 
@@ -2714,6 +2887,60 @@ main > section:not(.hidden) {
     background: var(--accent-info);
     color: var(--text-inverse);
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Dark Mode Status Badge Enhancements */
+:root.dark .status-badge.under-budget {
+    background: var(--accent-success);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 8px rgba(52, 211, 153, 0.4);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+:root.dark .status-badge.at-budget {
+    background: var(--accent-warning);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+:root.dark .status-badge.over-budget {
+    background: var(--accent-danger);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+:root.dark .status-badge.excellent {
+    background: var(--accent-info);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 8px rgba(147, 197, 253, 0.4);
+    border: 1px solid rgba(147, 197, 253, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Light Mode Status Badge Enhancements */
+:root:not(.dark) .status-badge.under-budget {
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+:root:not(.dark) .status-badge.at-budget {
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+:root:not(.dark) .status-badge.over-budget {
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+:root:not(.dark) .status-badge.excellent {
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Category Performance Analysis - Enhanced Styling */
@@ -3092,6 +3319,15 @@ main > section:not(.hidden) {
 .status-badge {
     position: relative;
     overflow: hidden;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .status-badge::before {
@@ -4055,4 +4291,142 @@ main > section:not(.hidden) {
 
 #reports .table-responsive::-webkit-scrollbar-thumb:hover {
     background: var(--accent-primary-dark);
+}
+
+/* Budget Editing Modal Text Visibility */
+#budgetEditModal .modal-content {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
+}
+
+#budgetEditModal .modal-header {
+    background: var(--primary-gradient);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+#budgetEditModal .modal-title {
+    color: var(--text-inverse) !important;
+    font-weight: 600;
+}
+
+#budgetEditModal .modal-body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+#budgetEditModal .modal-footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-primary);
+}
+
+#budgetEditModal .form-label {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+}
+
+#budgetEditModal .form-text {
+    color: var(--text-secondary) !important;
+}
+
+#budgetEditModal .form-control {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
+}
+
+#budgetEditModal .form-control:focus {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 0.2rem var(--accent-primary-alpha);
+}
+
+#budgetEditModal .form-control::placeholder {
+    color: var(--text-tertiary);
+}
+
+#budgetEditModal .budget-status-overview {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%) !important;
+    border: 1px solid var(--border-primary) !important;
+}
+
+#budgetEditModal .budget-status-overview .h5 {
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+#budgetEditModal .budget-status-overview small {
+    color: var(--text-secondary) !important;
+    font-weight: 500;
+}
+
+#budgetEditModal .progress {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+}
+
+#budgetEditModal .progress-bar {
+    border: 1px solid var(--border-primary);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure button text is visible */
+#budgetEditModal .btn-secondary {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary) !important;
+}
+
+#budgetEditModal .btn-secondary:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-secondary);
+    color: var(--text-primary) !important;
+}
+
+#budgetEditModal .btn-primary {
+    background: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
+    color: var(--text-inverse) !important;
+}
+
+#budgetEditModal .btn-primary:hover {
+    background: var(--accent-primary-dark);
+    border-color: var(--accent-primary-dark);
+    color: var(--text-inverse) !important;
+}
+
+/* Icon colors in modal */
+#budgetEditModal .fas {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode specific adjustments */
+:root.dark #budgetEditModal .modal-content {
+    background: var(--bg-primary);
+    border-color: var(--border-primary);
+}
+
+:root.dark #budgetEditModal .form-control {
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
+    color: var(--text-primary);
+}
+
+:root.dark #budgetEditModal .form-control:focus {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+:root.dark #budgetEditModal .btn-secondary {
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
+    color: var(--text-primary) !important;
+}
+
+:root.dark #budgetEditModal .btn-secondary:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-secondary);
+    color: var(--text-primary) !important;
 }

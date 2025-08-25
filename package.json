@@ -4,8 +4,8 @@
   "description": "A comprehensive financial management application with budget tracking, expense management, and financial analytics",
   "main": "api/index.js",
   "scripts": {
-    "start": "node api/index.js",
-    "dev": "nodemon api/index.js",
+    "start": "node api/server.js",
+    "dev": "nodemon api/server.js",
     "build": "echo 'Static files ready for deployment'",
     "deploy": "vercel --prod"
   },
